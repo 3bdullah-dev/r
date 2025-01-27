@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CryptoCoinNews</title>
     <link rel="stylesheet" href="style.css" />
-    <link rel="website icon" type="png" href="https://github.com/3bdullah-dev/r/blob/main/logo.png?raw=true" />
+    <link rel="website icon" type="png" href="data/logo.png" />
   </head>
   <body>
 
-    <img src="https://visitor-badge.laobi.icu/badge?page_id=3bdullah-dev.r" alt="Visitors">
     <nav class="top-nav">
       <div class="container">
         <!-- <img src="data/logo.png" alt="Logo" class="top-logo" /> -->
@@ -27,7 +26,7 @@
 
     <nav class="main-nav">
       <div class="container">
-        <div class="logo">CryptoCoinNews</div>
+        <div class="logo"><a href="admin.html" target="_blank" style="text-decoration: none; color: black;">CryptoCoinNews</a></div>
         <!-- <div class="nav-links">
           <a href="#">News</a>
           <a href="#">Feature</a>
@@ -1180,6 +1179,70 @@
           </a>
         </div>
 
+
+         <span style="display: none;" id="userCountry">جاري التحميل...</span>
+        </p>
+        <a style="display: none;" href="admin.html">صفحة الإدارة</a>
+
+        <script>
+          const VISITOR_COUNT_KEY = "home_page_visitor_count";
+          const VISITOR_COUNTRY_KEY = "home_page_visitor_countries";
+          const VISITOR_DETAILS_KEY = "visitor_details";
+
+          let visitStartTime = Date.now();
+
+          // زيادة عدد الزوار وتخزين التفاصيل
+          let visitorCount =
+            parseInt(localStorage.getItem(VISITOR_COUNT_KEY)) || 0;
+          visitorCount++;
+          localStorage.setItem(VISITOR_COUNT_KEY, visitorCount);
+
+          // جلب بيانات الموقع الجغرافي للمستخدم
+          fetch(
+            "http://api.ipstack.com/check?access_key=df587fb77d73f505d697b8953f09890f"
+          )
+            .then((response) => {
+              if (!response.ok) throw new Error("خطأ أثناء الاتصال بـ API");
+              return response.json();
+            })
+            .then((data) => {
+              const userCountry = data.country_name || "UNKNOWN";
+              document.getElementById("userCountry").textContent = userCountry;
+
+              let countries =
+                JSON.parse(localStorage.getItem(VISITOR_COUNTRY_KEY)) || [];
+              if (!countries.includes(userCountry)) {
+                countries.push(userCountry);
+                localStorage.setItem(
+                  VISITOR_COUNTRY_KEY,
+                  JSON.stringify(countries)
+                );
+              }
+
+              window.addEventListener("beforeunload", () => {
+                const visitEndTime = Date.now();
+                const visitDuration = visitEndTime - visitStartTime;
+
+                const visitorDetails =
+                  JSON.parse(localStorage.getItem(VISITOR_DETAILS_KEY)) || [];
+                visitorDetails.push({
+                  country: userCountry,
+                  timestamp: new Date().toISOString(),
+                  timeSpent: visitDuration,
+                });
+
+                localStorage.setItem(
+                  VISITOR_DETAILS_KEY,
+                  JSON.stringify(visitorDetails)
+                );
+              });
+            })
+            .catch((err) => {
+              document.getElementById("userCountry").textContent =
+                "غير قادر على تحديد الدولة";
+              console.error("Error fetching data: ", err);
+            });
+        </script>
         <!-- حقوق الملكية -->
         <p class="footer-copyright">
           &copy; 2025 CryptoCoinNews. All Rights Reserved.
