@@ -8,7 +8,6 @@
     <link rel="website icon" type="png" href="data/logo.png" />
   </head>
   <body>
-
     <nav class="top-nav">
       <div class="container">
         <!-- <img src="data/logo.png" alt="Logo" class="top-logo" /> -->
@@ -26,7 +25,14 @@
 
     <nav class="main-nav">
       <div class="container">
-        <div class="logo"><a href="admin.html" target="_blank" style="text-decoration: none; color: black;">CryptoCoinNews</a></div>
+        <div class="logo">
+          <a
+            href="admin.html"
+            target="_blank"
+            style="text-decoration: none; color: black"
+            >CryptoCoinNews</a
+          >
+        </div>
         <!-- <div class="nav-links">
           <a href="#">News</a>
           <a href="#">Feature</a>
@@ -1179,8 +1185,7 @@
           </a>
         </div>
 
-
-         <span style="display: none;" id="userCountry">جاري التحميل...</span>
+          <span id="userCountry"></span>
         </p>
         <a style="display: none;" href="admin.html">صفحة الإدارة</a>
 
@@ -1197,16 +1202,16 @@
           visitorCount++;
           localStorage.setItem(VISITOR_COUNT_KEY, visitorCount);
 
-          // جلب بيانات الموقع الجغرافي للمستخدم
+          // جلب بيانات الموقع الجغرافي للمستخدم باستخدام Geo.ipify
           fetch(
-            "http://api.ipstack.com/check?access_key=df587fb77d73f505d697b8953f09890f"
+            "https://geo.ipify.org/api/v2/country?apiKey=at_LCOpmtlnaYgIwwMBVDCKhKrsUjm0K"
           )
             .then((response) => {
               if (!response.ok) throw new Error("خطأ أثناء الاتصال بـ API");
               return response.json();
             })
             .then((data) => {
-              const userCountry = data.country_name || "UNKNOWN";
+              const userCountry = data.location.country || "غير معروف";
               document.getElementById("userCountry").textContent = userCountry;
 
               let countries =
