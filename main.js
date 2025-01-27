@@ -79,7 +79,7 @@ async function fetchBitcoinNews() {
                 }</p>
                 <a href="${
                   article.url
-                }" target="_blank" class="toggle-article" style="text-decoration: none;" >Read more</a>
+                }" target="_blank" class="toggle-article" style="text-decoration: none;">Read more</a>
                 <span class="news-timestamp">${new Date(
                   article.publishedAt
                 ).toLocaleString()}</span>
