@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 50px;
+        background-color: #f4f4f9;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: auto;
+        background: white;
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      .stats-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        gap: 20px;
+      }
+
+      .stat-box {
+        color: white;
+        padding: 30px; /* Increased padding */
+        border-radius: 8px;
+        font-size: 30px; /* Increased font size */
+        width: 30%;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 180px; /* Increased height */
+        text-align: center;
+        flex-direction: column; /* To stack the title and the number */
+      }
+
+      .stat-box h3 {
+        margin: 0;
+        font-size: 25px; /* Increased font size for the title */
+      }
+
+      .total-visitors {
+        background-color: #28a745;
+      }
+
+      .daily-visitors {
+        background-color: #17a2b8;
+      }
+
+      .unique-countries {
+        background-color: #ffc107;
+      }
+
+      .visitor-table {
+        margin-top: 30px;
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .visitor-table th,
+      .visitor-table td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: left;
+      }
+
+      .visitor-table th {
+        background-color: #f4f4f4;
+      }
+
+      .visitor-table td {
+        color: #555;
+      }
+
+      #visitorInfo {
+        display: none;
+      }
+
+      .stat-number {
+        font-weight: bold;
+        font-size: 30px; /* Increased font size for the number */
+        margin-top: 10px; /* Add space between title and number */
+        display: block; /* Make it display in a new line */
+      }
+
+      @media screen and (max-width: 768px) {
+        .stats-container {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .stat-box {
+          width: 80%;
+          margin-bottom: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Admin Login Page</h2>
+      <input type="password" id="adminPassword" placeholder="Enter Password" />
+      <button onclick="checkPassword()">View Stats</button>
+
+      <div id="visitorInfo">
+        <div class="stats-container">
+          <div class="stat-box total-visitors">
+            <h3>Total Visitors</h3>
+            <div class="stat-number" id="totalVisitorCount">0</div>
+          </div>
+          <div class="stat-box daily-visitors">
+            <h3>Daily Visitors</h3>
+            <div class="stat-number" id="dailyVisitorCount">0</div>
+          </div>
+          <div class="stat-box unique-countries">
+            <h3>Unique Countries</h3>
+            <div class="stat-number" id="uniqueCountries">0</div>
+          </div>
+        </div>
+
+        <h3>Visitor Details</h3>
+        <table class="visitor-table">
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th>Time Since Visit</th>
+              <th>Time Spent on Site</th>
+            </tr>
+          </thead>
+          <tbody id="visitorDetails"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const ADMIN_PASSWORD = "admin123"; // Update with a secure password
+      const VISITOR_COUNT_KEY = "home_page_visitor_count";
+      const VISITOR_COUNTRY_KEY = "home_page_visitor_countries";
+      const VISITOR_DETAILS_KEY = "visitor_details";
+
+      // Function to check password
+      function checkPassword() {
+        const inputPassword = document.getElementById("adminPassword").value;
+        if (inputPassword === ADMIN_PASSWORD) {
+          document.getElementById("visitorInfo").style.display = "block";
+          loadStats();
+        } else {
+          alert("Incorrect password!");
+        }
+      }
+
+      // Load statistics
+      function loadStats() {
+        const totalVisitorCount = localStorage.getItem(VISITOR_COUNT_KEY) || 0;
+        document.getElementById("totalVisitorCount").textContent =
+          totalVisitorCount;
+
+        // Count daily visitors
+        const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+        let dailyVisitors = 0;
+        let countriesSet = new Set();
+        const visitorDetails =
+          JSON.parse(localStorage.getItem(VISITOR_DETAILS_KEY)) || [];
+
+        // Sort visitors by timestamp (newest first)
+        visitorDetails.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        // Count daily visitors and unique countries
+        visitorDetails.forEach((visitor) => {
+          const visitorDate = new Date(visitor.timestamp)
+            .toISOString()
+            .split("T")[0];
+          if (visitorDate === today) {
+            dailyVisitors++;
+          }
+          countriesSet.add(visitor.country);
+        });
+
+        document.getElementById("dailyVisitorCount").textContent =
+          dailyVisitors;
+        document.getElementById("uniqueCountries").textContent =
+          countriesSet.size;
+
+        // Display visitor details
+        const visitorDetailsTable = document.getElementById("visitorDetails");
+        visitorDetailsTable.innerHTML = ""; // Clear old content
+        visitorDetails.forEach((visitor) => {
+          const tr = document.createElement("tr");
+
+          // Calculate time since the visit
+          const timeSinceVisit = formatTimeDifference(
+            new Date() - new Date(visitor.timestamp)
+          );
+
+          // Display the time spent on the site
+          const timeSpent = formatTimeDifference(visitor.timeSpent);
+
+          tr.innerHTML = `
+          <td>${visitor.country}</td>
+          <td>${timeSinceVisit}</td>
+          <td>${timeSpent}</td>
+        `;
+
+          visitorDetailsTable.appendChild(tr);
+        });
+      }
+
+      // Format time (milliseconds)
+      function formatTimeDifference(ms) {
+        const seconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (days > 0) return `${days} day(s)`;
+        if (hours > 0) return `${hours} hour(s)`;
+        if (minutes > 0) return `${minutes} minute(s)`;
+        return `${seconds} second(s)`;
+      }
+    </script>
+  </body>
+</html>
