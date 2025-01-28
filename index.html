@@ -1190,63 +1190,51 @@
         <a style="display: none;" href="admin.html">صفحة الإدارة</a>
 
         <script>
-          const VISITOR_COUNT_KEY = "home_page_visitor_count";
-          const VISITOR_COUNTRY_KEY = "home_page_visitor_countries";
-          const VISITOR_DETAILS_KEY = "visitor_details";
-
           let visitStartTime = Date.now();
-
-          // زيادة عدد الزوار وتخزين التفاصيل
-          let visitorCount =
-            parseInt(localStorage.getItem(VISITOR_COUNT_KEY)) || 0;
-          visitorCount++;
-          localStorage.setItem(VISITOR_COUNT_KEY, visitorCount);
-
-          // جلب بيانات الموقع الجغرافي للمستخدم باستخدام Geo.ipify
-          fetch(
-            "https://geo.ipify.org/api/v2/country?apiKey=at_LCOpmtlnaYgIwwMBVDCKhKrsUjm0K"
-          )
-            .then((response) => {
-              if (!response.ok) throw new Error("خطأ أثناء الاتصال بـ API");
-              return response.json();
-            })
+          let userCountry = "غير معروف";
+          const GOOGLE_SHEET_URL =
+            "https://script.google.com/macros/s/AKfycbzTFdRoFIOmxtuAERwjFDFtUJLPPrf53Y3mRHJlCQw4en6dk4LI27Knjbw-ZAdZarY3oA/exec";
+    
+          // الحصول على موقع المستخدم
+          fetch("https://ipapi.co/json/")
+            .then((response) => response.json())
             .then((data) => {
-              const userCountry = data.location.country || "غير معروف";
-              document.getElementById("userCountry").textContent = userCountry;
-
-              let countries =
-                JSON.parse(localStorage.getItem(VISITOR_COUNTRY_KEY)) || [];
-              if (!countries.includes(userCountry)) {
-                countries.push(userCountry);
-                localStorage.setItem(
-                  VISITOR_COUNTRY_KEY,
-                  JSON.stringify(countries)
-                );
-              }
-
-              window.addEventListener("beforeunload", () => {
-                const visitEndTime = Date.now();
-                const visitDuration = visitEndTime - visitStartTime;
-
-                const visitorDetails =
-                  JSON.parse(localStorage.getItem(VISITOR_DETAILS_KEY)) || [];
-                visitorDetails.push({
-                  country: userCountry,
-                  timestamp: new Date().toISOString(),
-                  timeSpent: visitDuration,
-                });
-
-                localStorage.setItem(
-                  VISITOR_DETAILS_KEY,
-                  JSON.stringify(visitorDetails)
-                );
-              });
+              userCountry = data.country_name || "غير معروف";
             })
-            .catch((err) => {
-              document.getElementById("userCountry").textContent =
-                "غير قادر على تحديد الدولة";
-              console.error("Error fetching data: ", err);
-            });
+            .catch((error) => console.error("خطأ في جلب الموقع:", error));
+    
+          // وظيفة تسجيل البيانات
+          function sendVisitData() {
+            const visitEndTime = Date.now();
+            const visitDuration = visitEndTime - visitStartTime;
+    
+            const data = {
+              country: userCountry,
+              timestamp: new Date(visitEndTime).toISOString(),
+              timeSpent: visitDuration,
+            };
+    
+            navigator.sendBeacon(GOOGLE_SHEET_URL, JSON.stringify(data));
+          }
+    
+          // إعادة تعيين وقت البداية عند العودة إلى الصفحة
+          function resetVisitStartTime() {
+            visitStartTime = Date.now();
+          }
+    
+          // تسجيل البيانات عند إغلاق الصفحة أو مغادرة التبويبة
+          window.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+              sendVisitData();
+            } else if (document.visibilityState === "visible") {
+              resetVisitStartTime();
+            }
+          });
+    
+          window.addEventListener("pagehide", sendVisitData);
+    
+          // إعادة تعيين وقت البداية عند التركيز على الصفحة
+          window.addEventListener("focus", resetVisitStartTime);
         </script>
         <!-- حقوق الملكية -->
         <p class="footer-copyright">
