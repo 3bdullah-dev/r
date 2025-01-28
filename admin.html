@@ -53,6 +53,13 @@
         background: #0056b3;
       }
 
+      .loading-message {
+        display: none;
+        margin-top: 20px;
+        font-size: 18px;
+        color: #555;
+      }
+
       .stats-container {
         display: flex;
         justify-content: space-between;
@@ -113,21 +120,6 @@
         color: #555;
       }
 
-      #visitorInfo {
-        display: none;
-      }
-
-      #clearDataButton {
-        margin-top: 20px; /* يمكنك تغيير القيمة حسب الحاجة */
-      }
-
-      .stat-number {
-        font-weight: bold;
-        font-size: 30px;
-        margin-top: 10px;
-        display: block;
-      }
-
       @media screen and (max-width: 768px) {
         .stats-container {
           flex-direction: column;
@@ -147,19 +139,23 @@
       <input type="password" id="adminPassword" placeholder="Enter Password" />
       <button onclick="checkPassword()">View Stats</button>
 
-      <div id="visitorInfo">
+      <div class="loading-message" id="loadingMessage">
+        Loading visitor data...
+      </div>
+
+      <div id="visitorInfo" style="display: none">
         <div class="stats-container">
           <div class="stat-box total-visitors">
             <h3>Total Visitors</h3>
-            <div class="stat-number" id="totalVisitorCount">0</div>
+            <div id="totalVisitorCount">0</div>
           </div>
           <div class="stat-box daily-visitors">
             <h3>Daily Visitors</h3>
-            <div class="stat-number" id="dailyVisitorCount">0</div>
+            <div id="dailyVisitorCount">0</div>
           </div>
           <div class="stat-box unique-countries">
             <h3>Unique Countries</h3>
-            <div class="stat-number" id="uniqueCountries">0</div>
+            <div id="uniqueCountries">0</div>
           </div>
         </div>
 
@@ -177,79 +173,72 @@
       </div>
     </div>
 
-    <button
-      id="clearDataButton"
-      style="display: none"
-      onclick="clearVisitorData()"
-    >
-      Clear Visitor Data
-    </button>
-
     <script>
       const ADMIN_PASSWORD = "admin123";
-      const VISITOR_COUNT_KEY = "home_page_visitor_count";
-      const VISITOR_COUNTRY_KEY = "home_page_visitor_countries";
-      const VISITOR_DETAILS_KEY = "visitor_details";
+      const GOOGLE_SHEET_URL =
+        "https://script.google.com/macros/s/AKfycbzTFdRoFIOmxtuAERwjFDFtUJLPPrf53Y3mRHJlCQw4en6dk4LI27Knjbw-ZAdZarY3oA/exec"; // استبدل بالرابط الصحيح
 
       function checkPassword() {
         const inputPassword = document.getElementById("adminPassword").value;
         if (inputPassword === ADMIN_PASSWORD) {
-          document.getElementById("visitorInfo").style.display = "block";
+          document.getElementById("loadingMessage").style.display = "block"; // إظهار رسالة التحميل
           loadStats();
         } else {
           alert("Incorrect password!");
         }
       }
 
-      function loadStats() {
-        const totalVisitorCount = localStorage.getItem(VISITOR_COUNT_KEY) || 0;
-        document.getElementById("totalVisitorCount").textContent =
-          totalVisitorCount;
-
-        const today = new Date().toISOString().split("T")[0];
-        let dailyVisitors = 0;
-        let countriesSet = new Set();
-        const visitorDetails =
-          JSON.parse(localStorage.getItem(VISITOR_DETAILS_KEY)) || [];
-
-        visitorDetails.sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-        );
-
-        visitorDetails.forEach((visitor) => {
-          const visitorDate = new Date(visitor.timestamp)
-            .toISOString()
-            .split("T")[0];
-          if (visitorDate === today) {
-            dailyVisitors++;
-          }
-          countriesSet.add(visitor.country);
-        });
-
-        document.getElementById("dailyVisitorCount").textContent =
-          dailyVisitors;
-        document.getElementById("uniqueCountries").textContent =
-          countriesSet.size;
-
+      async function loadStats() {
         const visitorDetailsTable = document.getElementById("visitorDetails");
-        visitorDetailsTable.innerHTML = "";
-        visitorDetails.forEach((visitor) => {
-          const tr = document.createElement("tr");
+        visitorDetailsTable.innerHTML = ""; // تنظيف الجدول قبل الإضافة
 
-          const timeSinceVisit = formatTimeDifference(
-            new Date() - new Date(visitor.timestamp)
+        try {
+          const response = await fetch(GOOGLE_SHEET_URL);
+          const data = await response.json();
+
+          // ترتيب البيانات
+          data.sort(
+            (a, b) =>
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
           );
 
-          const timeSpent = formatTimeDifference(visitor.timeSpent);
+          let totalVisitors = data.length;
+          let dailyVisitors = 0;
+          let countriesSet = new Set();
+          const today = new Date().toISOString().split("T")[0];
 
-          tr.innerHTML = `
-          <td>${visitor.country}</td>
-          <td>${timeSinceVisit}</td>
-          <td>${timeSpent}</td>
-        `;
+          data.forEach((visitor) => {
+            const visitorDate = new Date(visitor.timestamp)
+              .toISOString()
+              .split("T")[0];
+            if (visitorDate === today) dailyVisitors++;
+            countriesSet.add(visitor.country);
+          });
 
-          visitorDetailsTable.appendChild(tr);
-        });
+          document.getElementById("totalVisitorCount").textContent =
+            totalVisitors;
+          document.getElementById("dailyVisitorCount").textContent =
+            dailyVisitors;
+          document.getElementById("uniqueCountries").textContent =
+            countriesSet.size;
+
+          data.forEach((visitor) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${visitor.country}</td>
+              <td>${formatTimeDifference(
+                new Date() - new Date(visitor.timestamp)
+              )}</td>
+              <td>${formatTimeDifference(visitor.timeSpent)}</td>
+            `;
+            visitorDetailsTable.appendChild(tr);
+          });
+
+          document.getElementById("loadingMessage").style.display = "none"; // إخفاء رسالة التحميل
+          document.getElementById("visitorInfo").style.display = "block"; // إظهار البيانات
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
       }
 
       function formatTimeDifference(ms) {
@@ -262,34 +251,6 @@
         if (hours > 0) return `${hours} hour(s)`;
         if (minutes > 0) return `${minutes} minute(s)`;
         return `${seconds} second(s)`;
-      }
-
-      function checkPassword() {
-        const inputPassword = document.getElementById("adminPassword").value;
-        if (inputPassword === ADMIN_PASSWORD) {
-          document.getElementById("visitorInfo").style.display = "block";
-          document.getElementById("clearDataButton").style.display =
-            "inline-block"; // إظهار الزر
-          loadStats();
-        } else {
-          alert("Incorrect password!");
-        }
-      }
-
-      function clearVisitorData() {
-        // حذف البيانات من LocalStorage
-        localStorage.removeItem(VISITOR_COUNT_KEY);
-        localStorage.removeItem(VISITOR_COUNTRY_KEY);
-        localStorage.removeItem(VISITOR_DETAILS_KEY);
-
-        // إعادة تعيين الإحصائيات في واجهة المستخدم
-        document.getElementById("totalVisitorCount").textContent = 0;
-        document.getElementById("dailyVisitorCount").textContent = 0;
-        document.getElementById("uniqueCountries").textContent = 0;
-
-        // تفريغ جدول تفاصيل الزائرين
-        const visitorDetailsTable = document.getElementById("visitorDetails");
-        visitorDetailsTable.innerHTML = "";
       }
     </script>
   </body>
