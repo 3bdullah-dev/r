@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="website icon" type="png" href="data/logo.png" />
+
     <title>Admin Page</title>
-    <link rel="website icon" type="png" href="https://github.com/3bdullah-dev/r/blob/main/logo.png?raw=true"/>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -19,24 +20,27 @@
         margin: auto;
         background: white;
         border: 1px solid #ccc;
-        padding: 20px;
+        padding: 40px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
       h2 {
-        font-size: 24px;
-        margin-bottom: 20px;
-        color: #333;
+        font-size: 34px;
+        margin-bottom: 30px;
+        color: #0066cc;
       }
 
       input[type="password"] {
         width: 100%;
         padding: 10px;
         margin: 10px 0;
-        border: 1px solid #ccc;
+        border: 1px solid #ccccccaf;
         border-radius: 5px;
-        font-size: 16px;
+        font-size: 23px;
+        position: relative;
+        text-align: center;
+        right: 10px;
       }
 
       button {
@@ -47,6 +51,7 @@
         border-radius: 5px;
         cursor: pointer;
         font-size: 16px;
+        margin-top: 25px;
       }
 
       button:hover {
@@ -56,8 +61,8 @@
       .loading-message {
         display: none;
         margin-top: 20px;
-        font-size: 18px;
-        color: #555;
+        font-size: 25px;
+        color: #0056b3;
       }
 
       .stats-container {
@@ -136,8 +141,14 @@
   <body>
     <div class="container">
       <h2>Admin Login Page</h2>
-      <input type="password" id="adminPassword" placeholder="Enter Password" />
-      <button onclick="checkPassword()">View Stats</button>
+      <form id="passwordForm">
+        <input
+          type="password"
+          id="adminPassword"
+          placeholder="Enter Password"
+        />
+        <button type="submit">View Stats</button>
+      </form>
 
       <div class="loading-message" id="loadingMessage">
         Loading visitor data...
@@ -178,15 +189,34 @@
       const GOOGLE_SHEET_URL =
         "https://script.google.com/macros/s/AKfycbzTFdRoFIOmxtuAERwjFDFtUJLPPrf53Y3mRHJlCQw4en6dk4LI27Knjbw-ZAdZarY3oA/exec"; // استبدل بالرابط الصحيح
 
-      function checkPassword() {
-        const inputPassword = document.getElementById("adminPassword").value;
-        if (inputPassword === ADMIN_PASSWORD) {
-          document.getElementById("loadingMessage").style.display = "block"; // إظهار رسالة التحميل
-          loadStats();
-        } else {
-          alert("Incorrect password!");
-        }
+      async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+        return hashHex;
       }
+
+      document
+        .getElementById("passwordForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault(); // منع إعادة تحميل الصفحة
+
+          const inputPassword = document.getElementById("adminPassword").value;
+          const hashedEnteredPassword = await hashPassword(inputPassword);
+          const storedHashedPassword =
+            "86207786e0d362f2879beb362b6c5d82ef227588d7b434d50b3ab5ed4722ee2f";
+
+          if (hashedEnteredPassword === storedHashedPassword) {
+            document.getElementById("loadingMessage").style.display = "block"; // إظهار رسالة التحميل
+            loadStats();
+          } else {
+            alert("Incorrect password!");
+          }
+        });
 
       async function loadStats() {
         const visitorDetailsTable = document.getElementById("visitorDetails");
@@ -225,12 +255,12 @@
           data.forEach((visitor) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${visitor.country}</td>
-              <td>${formatTimeDifference(
-                new Date() - new Date(visitor.timestamp)
-              )}</td>
-              <td>${formatTimeDifference(visitor.timeSpent)}</td>
-            `;
+                    <td>${visitor.country}</td>
+                    <td>${formatTimeDifference(
+                      new Date() - new Date(visitor.timestamp)
+                    )}</td>
+                    <td>${formatTimeDifference(visitor.timeSpent)}</td>
+                  `;
             visitorDetailsTable.appendChild(tr);
           });
 
@@ -251,6 +281,20 @@
         if (hours > 0) return `${hours} hour(s)`;
         if (minutes > 0) return `${minutes} minute(s)`;
         return `${seconds} second(s)`;
+      }
+
+      document.body.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          checkPassword();
+        }
+      });
+
+      if (window.location.href.endsWith(".html")) {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.href.replace(".html", "")
+        );
       }
     </script>
   </body>
