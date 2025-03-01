@@ -222,7 +222,7 @@ async function sendVisitData() {
   const visitEndTime = Date.now();
   const visitDuration = visitEndTime - visitStartTime;
 
-  if (visitDuration > 5000 && countryName != "غير معروف" && city != "غير معروف") {
+  if (visitDuration > 5000) {
     const data = {
       country: userLocation, // إرسال (الدولة + المدينة)
       timestamp: new Date(visitEndTime).toISOString(),
