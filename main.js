@@ -53,7 +53,7 @@ async function fetchCurrencyPrices() {
 fetchCurrencyPrices();
 setInterval(fetchCurrencyPrices, 86400000); // تحديث يومي
 
-const apiKey = "95837298722ea8ce73d6f03caee38065"; // ضع مفتاح API الخاص بك هنا
+const apiKey = "6be0496535fbb284d25d74ac33658e81"; // ضع مفتاح API الخاص بك هنا
 const apiUrl = `https://gnews.io/api/v4/search?q=bitcoin&token=${apiKey}&lang=en&max=5&sortby=publishedAt`;
 
 async function fetchBitcoinNews() {
