@@ -35,7 +35,7 @@ body {
 /* Top Navigation */
 .top-nav {
   background-color: var(--primary-color);
-  padding: 10px;
+  padding: 10px 20px;
 }
 
 .top-nav .container {
@@ -59,6 +59,7 @@ body {
   font-size: 1rem; /* تكبير الخط */
   margin-left: 10px;
   font-weight: bold;
+  font-size: 25px;
 }
 
 /* Main Navigation */
@@ -90,6 +91,15 @@ body {
 .nav-links a {
   color: var(--text-color);
   text-decoration: none;
+}
+.menu-toggle {
+  display: none;
+  font-size: 34px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-left: 10px;
 }
 
 /* Crypto Ticker */
@@ -211,11 +221,32 @@ body {
 
   .top-links a {
     font-weight: bold;
-    font-size: 0.85rem; /* تكبير الخط */
+    font-size: 25px;
+    padding: 10px 0;
+    display: block;
   }
 
   .top-links {
-    gap: 0.7rem;
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background: var(--primary-color);
+    text-align: center;
+    padding: 10px 0;
+    z-index: 10000;
+  }
+  .menu-toggle {
+    display: block;
+  }
+  .top-links.active {
+    display: flex;
+  }
+
+  .abo-container,.pri-container{
+    width: 80%;
   }
 }
 
@@ -237,10 +268,11 @@ body {
 }
 
 .section-title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   color: var(--primary-color);
   margin-bottom: 1.5rem;
   margin-left: 0.4rem;
+  text-align: center;
 }
 
 .news-container {
@@ -308,6 +340,8 @@ body {
   border: 1px solid var(--border-color);
   transition: transform 0.3s ease;
   margin-bottom: 30px;
+  word-wrap: break-word; /* يسمح بتقسيم الكلمات الطويلة */
+  overflow-wrap: break-word; /* يسمح بتغليف الكلمات الطويلة */
 }
 
 .article-title {
@@ -348,20 +382,23 @@ body {
 }
 
 #about .section-title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   color: var(--primary-color);
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  margin-left: 0.4rem;
   text-align: center;
 }
 
 .about-content {
-  font-size: 1.2rem;
+  font-size: 1.67rem;
   line-height: 1.8;
   color: var(--text-color);
-  text-align: center;
-  margin: 0 auto;
   max-width: 800px;
-}
+  margin: 20px auto;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+} 
 
 #privacy-policy {
   max-width: 1200px;
@@ -370,24 +407,28 @@ body {
   background-color: var(--nav-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  
 }
 
 #privacy-policy .section-title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   color: var(--primary-color);
   margin-bottom: 1.5rem;
+  margin-left: 0.4rem;
   text-align: center;
 }
 
 .privacy-content {
-  font-size: 1.2rem;
+  font-size: 1.67rem;
   line-height: 1.8;
   color: var(--text-color);
   max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
+  margin: 20px auto;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
 }
+
+
 
 .footer-link {
   color: var(--primary-color);
@@ -411,7 +452,12 @@ body {
   }
 
   #privacy-policy .privacy-content {
-    font-size: 1rem;
+    font-size: 1.2rem;
+  }
+  
+  .about-content{
+    font-size: 1.2rem;
+    
   }
 }
 
@@ -426,10 +472,11 @@ body {
 }
 
 #contact .section-title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   color: var(--primary-color);
-  text-align: center;
   margin-bottom: 1.5rem;
+  margin-left: 0.4rem;
+  text-align: center;
 }
 
 #contact-form {
@@ -559,5 +606,8 @@ body {
   }
 }
 
-
-
+.web-title {
+  text-decoration: none;
+  color: var(--primary-color);
+  font-size: 35px;
+}
