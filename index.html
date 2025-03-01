@@ -12,18 +12,22 @@
   <body>
     <nav class="top-nav">
       <div class="container">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+
         <!-- <img src="data/logo.png" alt="Logo" class="top-logo" /> -->
-        <div class="top-links">
+        <div class="top-links" id="top-links">
           <!-- <a href="#">Home</a> -->
-          <a href="#news">News</a>
-          <a href="#articles">Articles</a>
-          <a href="#about">About Us</a>
-          <a href="#privacy-policy">Privacy Policy</a>
-          <a href="#contact">Contact Us</a>
+          <a href="#news" class="nav-link">News</a>
+          <a href="#articles" class="nav-link">Articles</a>
+          <a href="#about" class="nav-link">About Us</a>
+          <a href="#privacy-policy" class="nav-link">Privacy Policy</a>
+          <a href="#contact" class="nav-link">Contact Us</a>
         </div>
         <button class="theme-toggle" id="themeToggle">🌓</button>
       </div>
     </nav>
+
+    
 
     <nav class="main-nav">
       <div class="container">
@@ -31,18 +35,11 @@
           <a
             href="admin.html"
             target="_blank"
-            style="text-decoration: none; color: black"
+            class="web-title"
             >CryptoCoinNews</a
           >
         </div>
-        <!-- <div class="nav-links">
-          <a href="#">News</a>
-          <a href="#">Feature</a>
-          <a href="#">Opinion</a>
-          <a href="#">Markets</a>
-          <a href="#">Learn</a>
-          <a href="#">Prices</a>
-        </div> -->
+
       </div>
     </nav>
 
@@ -62,11 +59,11 @@
     </section>
 
    
-    <h2 class="section-title" style="  display: flex;
-    justify-content: center; /* توسيط أفقي */
-    align-items: center; /* توسيط عمودي */
-     /* يجعل الحاوية تمتد لكامل الشاشة */
-    text-align: center; font-size: 3rem; /* توسيط النص */">Articles</h2> 
+    <h2 class="section-title" style="  font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    margin-left: 0.3rem;
+    text-align: center;">Articles</h2> 
     <section id="articles">
     <div class="articles-container">
       
@@ -112,7 +109,7 @@
     <section id="contact">
       <div class="container">
         <h2 class="section-title">Contact Us</h2>
-        <form id="contact-form" action="#" method="POST">
+        <form id="contact-form" method="POST" action="https://formspree.io/f/mvgzjyno">
           <div class="form-group">
             <label for="name">Name</label>
             <input
@@ -143,7 +140,8 @@
               required
             ></textarea>
           </div>
-          <button type="submit" class="submit-btn">Send</button>
+          <!-- <button type="submit" class="submit-btn">Send</button> -->
+          <input type="submit" class="submit-btn" value="Send">
         </form>
       </div>
     </section>
@@ -209,8 +207,12 @@
               timestamp: new Date(visitEndTime).toISOString(),
               timeSpent: visitDuration,
             };
-    
-            navigator.sendBeacon(GOOGLE_SHEET_URL, JSON.stringify(data));
+            
+            if(visitDuration > 5000 && userCountry != "غير معروف" ){
+
+              navigator.sendBeacon(GOOGLE_SHEET_URL, JSON.stringify(data));
+            }
+
           }
     
           // إعادة تعيين وقت البداية عند العودة إلى الصفحة
@@ -234,8 +236,8 @@
 
 
           async function fetchArticles() {
-        const spaceId = "o2m220hl7z0x";
-        const accessToken = "Io_s33x_D2sPz1LT9A5IQWsEGY4aLPUmKWjMfBwozD0";
+        const spaceId = "1xctpowg2b6z";
+        const accessToken = "np4JYIYcZ2zUEs1D_CDt7k6dHeBcQAEImSirUppOzHE";
         const url = `https://cdn.contentful.com/spaces/${spaceId}/environments/master/entries?access_token=${accessToken}&content_type=article`;
 
         try {
@@ -265,7 +267,7 @@
 
         articles.forEach((article) => {
           const title = article.fields.title;
-          const content = extractTextFromRichText(article.fields.content);
+          const url = article.fields.url;
 
           const articleDiv = document.createElement("div");
           articleDiv.className = "article";
@@ -273,30 +275,35 @@
           const titleElement = document.createElement("h2");
           titleElement.textContent = title;
 
-          const contentElement = document.createElement("p");
-          contentElement.className = "article-content";
-          contentElement.innerHTML = content;
-
-          const button = document.createElement("button");
+          const button = document.createElement("a");
           button.className = "toggle-article";
           button.textContent = "Read More";
+          button.href = url;
+          button.target = "_blank"; // فتح الرابط في نافذة جديدة
+          button.style.display = "inline-block";
+          button.style.marginTop = "10px";
+          button.style.padding = "8px 12px";
+          button.style.backgroundColor = "#007bff";
+          button.style.color = "#fff";
+          button.style.borderRadius = "5px";
+          button.style.textDecoration = "none";
 
-          button.addEventListener("click", function () {
-            if (
-              contentElement.style.display === "none" ||
-              contentElement.style.display === ""
-            ) {
-              contentElement.style.display = "block";
-              button.textContent = "Read Less";
-            } else {
-              contentElement.style.display = "none";
-              button.textContent = "Read More";
-            }
-          });
+
+          // button.addEventListener("click", function () {
+          //   if (
+          //     contentElement.style.display === "none" ||
+          //     contentElement.style.display === ""
+          //   ) {
+          //     contentElement.style.display = "block";
+          //     button.textContent = "Read Less";
+          //   } else {
+          //     contentElement.style.display = "none";
+          //     button.textContent = "Read More";
+          //   }
+          // });
 
           articleDiv.appendChild(titleElement);
           articleDiv.appendChild(button);
-          articleDiv.appendChild(contentElement);
           container.appendChild(articleDiv);
         });
       }
@@ -311,5 +318,21 @@
     </footer>
 
     <script src="main.js"></script>
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const topLinks = document.getElementById('top-links');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        menuToggle.addEventListener('click', function() {
+            topLinks.classList.toggle('active');
+        });
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                topLinks.classList.remove('active');
+            });
+        });
+    </script>
+
   </body>
 </html>
