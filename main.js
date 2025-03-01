@@ -53,7 +53,7 @@ async function fetchCurrencyPrices() {
 fetchCurrencyPrices();
 setInterval(fetchCurrencyPrices, 86400000); // تحديث يومي
 
-const apiKey = "53f166614b9c61bb51178718fca3a1a5"; // ضع مفتاح API الخاص بك هنا
+const apiKey = "426d100b738583d6c65a979bf65bde76"; // ضع مفتاح API الخاص بك هنا
 const apiUrl = `https://gnews.io/api/v4/search?q=bitcoin&token=${apiKey}&lang=en&max=5&sortby=publishedAt`;
 
 async function fetchBitcoinNews() {
@@ -144,3 +144,6 @@ contactForm.addEventListener("submit", (e) => {
   alert("Your message has been sent successfully! We'll get back to you soon.");
   contactForm.reset(); // Reset form fields
 });
+
+
+
