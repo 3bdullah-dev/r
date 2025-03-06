@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="website icon" type="png" href="data/logo.png" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/@contentful/rich-text-html-renderer/15.3.0/rich-text-html-renderer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/@contentful/rich-text-types/15.3.0/rich-text-types.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/@contentful/rich-text-from-markdown/15.3.0/rich-text-from-markdown.min.js"></script>
 
   </head>
   <body>
@@ -59,17 +61,17 @@
     </section>
 
    
-    <h2 class="section-title" style="  font-size: 3rem;
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-    margin-left: 0.3rem;
-    text-align: center;">Articles</h2> 
+    <h2 class="section-title" style="  display: flex;
+    justify-content: center; /* توسيط أفقي */
+    align-items: center; /* توسيط عمودي */
+     /* يجعل الحاوية تمتد لكامل الشاشة */
+    text-align: center; font-size: 3rem; /* توسيط النص */">Articles</h2> 
     <section id="articles">
-    <div class="articles-container">
+      <div class="articles-container">
       
-      <div id="articles"></div>
-  </div>
-    </section>
+        <div id="articles"></div>
+    </div>
+      </section>
 
     <section id="about">
       <div class="container">
@@ -140,7 +142,6 @@
               required
             ></textarea>
           </div>
-          <!-- <button type="submit" class="submit-btn">Send</button> -->
           <input type="submit" class="submit-btn" value="Send">
         </form>
       </div>
@@ -148,12 +149,6 @@
 
     <footer class="footer">
       <div class="container">
-        <!-- الجملة الشهيرة
-        <p class="footer-quote">
-          "Empowering your journey through the digital age."
-        </p> -->
-
-        <!-- روابط السوشيال ميديا -->
         <div class="social-links">
           <a
             href="https://www.youtube.com/@ramaalbrin"
@@ -186,176 +181,11 @@
         <a style="display: none;" href="admin.html">صفحة الإدارة</a>
 
         <script>
-      let visitStartTime = Date.now();
-let userLocation = "غير معروف";
-const GOOGLE_SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbzTFdRoFIOmxtuAERwjFDFtUJLPPrf53Y3mRHJlCQw4en6dk4LI27Knjbw-ZAdZarY3oA/exec";
 
-let lastSentTimestamp = null; // متغير لتجنب إرسال بيانات متكررة
-
-// 🟢 الحصول على موقع المستخدم (الدولة + المدينة)
-async function getUserLocation() {
-  if (userLocation !== "غير معروف") return; // إذا كانت البيانات موجودة، لا تقم بجلبها مرة أخرى
-
-  try {
-    const response = await fetch("https://ipinfo.io/json");
-    const data = await response.json();
-    
-    // جلب اسم الدولة بالكامل
-    const countryResponse = await fetch(`https://restcountries.com/v3.1/alpha/${data.country}`);
-    const countryData = await countryResponse.json();
-    
-    let countryName = countryData[0]?.name?.common || "غير معروف";
-    let city = data.city || "غير معروف";
-
-    userLocation = `${countryName}, ${city}`; // تخزين الدولة + المدينة معًا
-    console.log("تم تحديد الموقع:", userLocation);
-  } catch (error) {
-    console.error("❌ خطأ في جلب الموقع:", error);
-  }
-}
-
-// 🟢 وظيفة تسجيل البيانات
-async function sendVisitData() {
-  await getUserLocation(); // تأكد من أن بيانات الموقع محملة
-
-  const visitEndTime = Date.now();
-  const visitDuration = visitEndTime - visitStartTime;
-
-  if (visitDuration > 5000) {
-    const data = {
-      country: userLocation, // إرسال (الدولة + المدينة)
-      timestamp: new Date(visitEndTime).toISOString(),
-      timeSpent: visitDuration,
-    };
-
-    // ✅ منع إرسال بيانات مكررة إذا كان الوقت متشابهًا جدًا مع آخر إرسال
-    if (lastSentTimestamp && Math.abs(visitEndTime - lastSentTimestamp) < 100) {
-      console.log("🚫 تم منع إرسال البيانات المكررة");
-      return;
-    }
-
-    console.log("✅ إرسال البيانات:", data);
-    navigator.sendBeacon(GOOGLE_SHEET_URL, JSON.stringify(data));
-
-    lastSentTimestamp = visitEndTime; // حفظ آخر وقت إرسال لمنع التكرار
-  } else {
-    console.log("⏳ لم يتم إرسال البيانات: مدة الزيارة قصيرة أو الموقع غير محدد.");
-  }
-}
-
-// 🟢 تحميل بيانات الموقع مرة واحدة
-getUserLocation().then(() => {
-  window.addEventListener("visibilitychange", async () => {
-    if (document.visibilityState === "hidden") {
-      await sendVisitData();
-    } else if (document.visibilityState === "visible") {
-      visitStartTime = Date.now();
-    }
-  });
-
-  window.addEventListener("pagehide", sendVisitData);
-});
-
-    
-          // إعادة تعيين وقت البداية عند العودة إلى الصفحة
-          function resetVisitStartTime() {
-            visitStartTime = Date.now();
-          }
-    
-          // تسجيل البيانات عند إغلاق الصفحة أو مغادرة التبويبة
-          window.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
-              sendVisitData();
-            } else if (document.visibilityState === "visible") {
-              resetVisitStartTime();
-            }
-          });
-    
-          window.addEventListener("pagehide", sendVisitData);
-    
-          // إعادة تعيين وقت البداية عند التركيز على الصفحة
-          window.addEventListener("focus", resetVisitStartTime);
-
-
-          async function fetchArticles() {
-        const spaceId = "1xctpowg2b6z";
-        const accessToken = "np4JYIYcZ2zUEs1D_CDt7k6dHeBcQAEImSirUppOzHE";
-        const url = `https://cdn.contentful.com/spaces/${spaceId}/environments/master/entries?access_token=${accessToken}&content_type=article`;
-
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-          displayArticles(data.items);
-        } catch (error) {
-          console.error("Error fetching articles:", error);
-        }
-      }
-
-
-      function extractTextFromRichText(richText) {
-        if (!richText || !richText.content) return ""; // تجنب الأخطاء إذا لم يكن هناك محتوى
-        return richText.content
-          .map((block) =>
-            block.content
-              ? block.content.map((text) => text.value).join(" ")
-              : ""
-          )
-          .join("\n");
-      }
-
-      function displayArticles(articles) {
-        const container = document.getElementById("articles");
-        container.innerHTML = "";
-
-        articles.forEach((article) => {
-          const title = article.fields.title;
-          const url = article.fields.url;
-
-          const articleDiv = document.createElement("div");
-          articleDiv.className = "article";
-
-          const titleElement = document.createElement("h2");
-          titleElement.textContent = title;
-
-          const button = document.createElement("a");
-          button.className = "toggle-article";
-          button.textContent = "Read More";
-          button.href = url;
-          button.target = "_blank"; // فتح الرابط في نافذة جديدة
-          button.style.display = "inline-block";
-          button.style.marginTop = "10px";
-          button.style.padding = "8px 12px";
-          button.style.backgroundColor = "#007bff";
-          button.style.color = "#fff";
-          button.style.borderRadius = "5px";
-          button.style.textDecoration = "none";
-
-
-          // button.addEventListener("click", function () {
-          //   if (
-          //     contentElement.style.display === "none" ||
-          //     contentElement.style.display === ""
-          //   ) {
-          //     contentElement.style.display = "block";
-          //     button.textContent = "Read Less";
-          //   } else {
-          //     contentElement.style.display = "none";
-          //     button.textContent = "Read More";
-          //   }
-          // });
-
-          articleDiv.appendChild(titleElement);
-          articleDiv.appendChild(button);
-          container.appendChild(articleDiv);
-        });
-      }
-
-      fetchArticles();
         </script>
         <!-- حقوق الملكية -->
         <p class="footer-copyright" style="font-size: 18px;">
-          Developed by <a
+          Development by                    <a
           href="https://khamsat.com/user/abdalllah_dev"
           target="_blank"
           aria-label="Pinterest"
@@ -368,26 +198,6 @@ getUserLocation().then(() => {
         </p>
       </div>
     </footer>
-
     <script src="main.js"></script>
-    <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const topLinks = document.getElementById('top-links');
-        const navLinks = document.querySelectorAll('.nav-link');
-        
-        menuToggle.addEventListener('click', function() {
-            topLinks.classList.toggle('active');
-        });
-        
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                topLinks.classList.remove('active');
-            });
-        });
-
-
-        
-    </script>
-
   </body>
 </html>
