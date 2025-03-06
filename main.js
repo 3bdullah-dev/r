@@ -1,4 +1,170 @@
-// Theme Toggle
+//                          HTML الكود الخاص بالجافاسكربت الخاص بالصفحة الرئيسية                         //
+
+let visitStartTime = Date.now();
+let userLocation = "غير معروف";
+const GOOGLE_SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbzTFdRoFIOmxtuAERwjFDFtUJLPPrf53Y3mRHJlCQw4en6dk4LI27Knjbw-ZAdZarY3oA/exec";
+
+let lastSentTimestamp = null; // متغير لتجنب إرسال بيانات متكررة
+
+// 🟢 الحصول على موقع المستخدم (الدولة + المدينة)
+async function getUserLocation() {
+  if (userLocation !== "غير معروف") return; // إذا كانت البيانات موجودة، لا تقم بجلبها مرة أخرى
+
+  try {
+    const response = await fetch("https://ipinfo.io/json");
+    const data = await response.json();
+
+    // جلب اسم الدولة بالكامل
+    const countryResponse = await fetch(
+      `https://restcountries.com/v3.1/alpha/${data.country}`
+    );
+    const countryData = await countryResponse.json();
+
+    let countryName = countryData[0]?.name?.common || "غير معروف";
+    let city = data.city || "غير معروف";
+
+    userLocation = `${countryName}, ${city}`; // تخزين الدولة + المدينة معًا
+    console.log("تم تحديد الموقع:", userLocation);
+  } catch (error) {
+    console.error("❌ خطأ في جلب الموقع:", error);
+  }
+}
+
+// 🟢 وظيفة تسجيل البيانات
+async function sendVisitData() {
+  await getUserLocation(); // تأكد من أن بيانات الموقع محملة
+
+  const visitEndTime = Date.now();
+  const visitDuration = visitEndTime - visitStartTime;
+
+  if (visitDuration > 5000 && userLocation != "غير معروف") {
+    const data = {
+      country: userLocation, // إرسال (الدولة + المدينة)
+      timestamp: new Date(visitEndTime).toISOString(),
+      timeSpent: visitDuration,
+    };
+
+    // ✅ منع إرسال بيانات مكررة إذا كان الوقت متشابهًا جدًا مع آخر إرسال
+    if (lastSentTimestamp && Math.abs(visitEndTime - lastSentTimestamp) < 100) {
+      console.log("🚫 تم منع إرسال البيانات المكررة");
+      return;
+    }
+
+    console.log("✅ إرسال البيانات:", data);
+    navigator.sendBeacon(GOOGLE_SHEET_URL, JSON.stringify(data));
+
+    lastSentTimestamp = visitEndTime; // حفظ آخر وقت إرسال لمنع التكرار
+  } else {
+    console.log(
+      "⏳ لم يتم إرسال البيانات: مدة الزيارة قصيرة أو الموقع غير محدد."
+    );
+  }
+}
+
+// 🟢 تحميل بيانات الموقع مرة واحدة
+getUserLocation().then(() => {
+  window.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "hidden") {
+      await sendVisitData();
+    } else if (document.visibilityState === "visible") {
+      visitStartTime = Date.now();
+    }
+  });
+
+  window.addEventListener("pagehide", sendVisitData);
+});
+
+// إعادة تعيين وقت البداية عند العودة إلى الصفحة
+function resetVisitStartTime() {
+  visitStartTime = Date.now();
+}
+
+// تسجيل البيانات عند إغلاق الصفحة أو مغادرة التبويبة
+window.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    sendVisitData();
+  } else if (document.visibilityState === "visible") {
+    resetVisitStartTime();
+  }
+});
+
+window.addEventListener("pagehide", sendVisitData);
+
+// إعادة تعيين وقت البداية عند التركيز على الصفحة
+window.addEventListener("focus", resetVisitStartTime);
+
+async function fetchArticles() {
+  const spaceId = "1xctpowg2b6z";
+  const accessToken = "np4JYIYcZ2zUEs1D_CDt7k6dHeBcQAEImSirUppOzHE";
+  const url = `https://cdn.contentful.com/spaces/${spaceId}/environments/master/entries?access_token=${accessToken}&content_type=article`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    displayArticles(data.items);
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+  }
+}
+
+function extractTextFromRichText(richText) {
+  if (!richText || !richText.content) return ""; // تجنب الأخطاء إذا لم يكن هناك محتوى
+  return richText.content
+    .map((block) =>
+      block.content ? block.content.map((text) => text.value).join(" ") : ""
+    )
+    .join("\n");
+}
+
+function displayArticles(articles) {
+  const container = document.getElementById("articles");
+  container.innerHTML = "";
+
+  articles.forEach((article) => {
+    const title = article.fields.title;
+    const content = extractTextFromRichText(article.fields.content);
+
+    const articleDiv = document.createElement("div");
+    articleDiv.className = "article";
+
+    const titleElement = document.createElement("h2");
+    titleElement.textContent = title;
+
+    const contentElement = document.createElement("p");
+    contentElement.className = "article-content";
+    contentElement.innerHTML = content;
+
+    const button = document.createElement("button");
+    button.className = "toggle-article";
+    button.textContent = "Read More";
+
+    button.addEventListener("click", function () {
+      if (
+        contentElement.style.display === "none" ||
+        contentElement.style.display === ""
+      ) {
+        contentElement.style.display = "block";
+        button.textContent = "Read Less";
+      } else {
+        contentElement.style.display = "none";
+        button.textContent = "Read More";
+      }
+    });
+
+    articleDiv.appendChild(titleElement);
+    articleDiv.appendChild(button);
+    articleDiv.appendChild(contentElement);
+    container.appendChild(articleDiv);
+  });
+}
+
+fetchArticles();
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- //
+
+
+
+// Dark Mode Toggle
 const themeToggle = document.getElementById("themeToggle");
 
 if (localStorage.getItem("darkMode") === "true") {
@@ -145,5 +311,17 @@ contactForm.addEventListener("submit", (e) => {
   contactForm.reset(); // Reset form fields
 });
 
+const menuToggle = document.getElementById("menuToggle");
+const topLinks = document.getElementById("top-links");
+const navLinks = document.querySelectorAll(".nav-link");
 
+menuToggle.addEventListener("click", function () {
+  topLinks.classList.toggle("active");
+});
 
+navLinks.forEach((link) => {
+  link.addEventListener("click", function () {
+    topLinks.classList.remove("active");
+  });
+});
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- //
